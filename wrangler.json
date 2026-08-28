@@ -6,9 +6,9 @@
     "directory": "./dist"
   },
   "routes": [
-		{
-			"pattern": "game2.zeroes.co.in",
-			"custom_domain": true
-		}
-	]
+    {
+      "pattern": "game2.zeroes.co.in",
+      "custom_domain": true
+    }
+  ]
 }
