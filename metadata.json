@@ -1,0 +1,6 @@
+{
+  "name": "MATLAB-MechControl",
+  "description": "A high-stakes, real-time robotics simulation and event management platform for ROBOVERSE.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
