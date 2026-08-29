@@ -19,8 +19,6 @@ import { runSimulation } from './src/game/simulationEngine.js';
 import { calculateScore, compareLeaderboardEntries } from './src/game/scoringEngine.js';
 import { syncGameStateToFirebase } from './serverFirebase.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const PORT = 3000;
 const HOST_PIN = process.env.HOST_PIN || 'P@ttu';
