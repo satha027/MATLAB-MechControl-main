@@ -33,6 +33,7 @@ interface GameSocketContextType {
   setActiveTeamId: (teamId: string) => void;
   socketError: string | null;
   clearSocketError: () => void;
+  forceSubmitTeam: () => void;
 }
 
 const defaultState: ServerGameState = {
@@ -62,6 +63,7 @@ const GameSocketContext = createContext<GameSocketContextType>({
   setActiveTeamId: () => {},
   socketError: null,
   clearSocketError: () => {},
+  forceSubmitTeam: () => {},
 });
 
 export const GameSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -221,19 +223,26 @@ export const GameSocketProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const switchStation = (stationId: string) => {
     if (socket && socket.connected) {
       socket.emit('host:command', {
-        pin: '1234',
+        pin: 'P@ttu',
         action: 'SWITCH_ACTIVE_STATION',
         data: { stationId },
       });
     }
     sendApiAction('host:command', {
-      pin: '1234',
+      pin: 'P@ttu',
       cmdAction: 'SWITCH_ACTIVE_STATION',
       data: { stationId },
     });
   };
 
   const clearSocketError = () => setSocketError(null);
+
+  const forceSubmitTeam = () => {
+    if (socket && socket.connected) {
+      socket.emit('team:force_submit', {});
+    }
+    sendApiAction('team:force_submit', {});
+  };
 
   return (
     <GameSocketContext.Provider
@@ -255,6 +264,7 @@ export const GameSocketProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setActiveTeamId,
         socketError,
         clearSocketError,
+        forceSubmitTeam,
       }}
     >
       {children}

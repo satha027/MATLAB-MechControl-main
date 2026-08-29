@@ -17,12 +17,13 @@ import { GAME_CONSTANTS } from './src/game/constants.js';
 import { getRoundRobinScenario, OFFICIAL_SCENARIOS } from './src/game/scenarios.js';
 import { runSimulation } from './src/game/simulationEngine.js';
 import { calculateScore, compareLeaderboardEntries } from './src/game/scoringEngine.js';
+import { syncGameStateToFirebase } from './serverFirebase.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = 3000;
-const HOST_PIN = process.env.HOST_PIN || '1234';
+const HOST_PIN = process.env.HOST_PIN || 'P@ttu';
 
 // Phase State Machine Validation
 const ALLOWED_PHASE_TRANSITIONS: Record<GamePhase, GamePhase[]> = {
@@ -141,7 +142,9 @@ async function startServer() {
 
   // Broadcast State Helper
   function broadcastState() {
-    io.emit('state:update', getSanitizedGameState());
+    const state = getSanitizedGameState();
+    io.emit('state:update', state);
+    syncGameStateToFirebase(state);
   }
 
   // Helper log emitter
@@ -596,6 +599,13 @@ async function startServer() {
           Object.values(gameState.teams).forEach((t) => (t.currentPhase = data.phase));
           addLog('info', `Host moved all teams to phase ${data.phase}`);
         }
+      } else if (action === 'FORCE_SUBMIT_ALL') {
+        Object.values(gameState.teams).forEach((t) => (t.currentPhase = 'FINAL_SCORE'));
+        addLog('warn', 'Host force submitted all teams.');
+      } else if (action === 'RESET_DATA') {
+        gameState.teams = {};
+        gameState.leaderboard = [];
+        addLog('warn', 'Host reset all game data.');
       } else if (action === 'RESET_TEAM') {
         if (data?.teamId && gameState.teams[data.teamId]) {
           gameState.teams[data.teamId].currentPhase = 'LOBBY';
@@ -615,6 +625,15 @@ async function startServer() {
         }
       }
 
+      updateLeaderboard();
+      broadcastState();
+    });
+
+    socket.on('team:force_submit', () => {
+      const team = getSocketTeam();
+      if (!team) return;
+      team.currentPhase = 'FINAL_SCORE';
+      addLog('warn', `${team.teamName} was force submitted (Auto-Trigger).`);
       updateLeaderboard();
       broadcastState();
     });

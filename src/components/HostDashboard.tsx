@@ -1,9 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGameSocket } from '../context/GameSocketContext';
-import { Team } from '../types';
+import { Team, ServerGameState } from '../types';
+import { database } from '../firebase';
+import { ref, onValue } from 'firebase/database';
 
 export const HostDashboard: React.FC = () => {
-  const { gameState, sendHostCommand, switchStation } = useGameSocket();
+  const { gameState: socketGameState, sendHostCommand, switchStation } = useGameSocket();
+  const [firebaseGameState, setFirebaseGameState] = useState<ServerGameState | null>(null);
+
+  useEffect(() => {
+    const stateRef = ref(database, 'gameState');
+    const unsubscribe = onValue(stateRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setFirebaseGameState(data);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const gameState = firebaseGameState || socketGameState;
 
   const [pin, setPin] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -14,11 +30,11 @@ export const HostDashboard: React.FC = () => {
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin === (gameState.hostPin || '1234')) {
+    if (pin === (gameState.hostPin || 'P@ttu')) {
       setIsAuthenticated(true);
       setPinError('');
     } else {
-      setPinError('Invalid Host PIN. Default is 1234');
+      setPinError('Invalid Host PIN');
     }
   };
 
@@ -53,7 +69,7 @@ export const HostDashboard: React.FC = () => {
             </label>
             <input
               type="password"
-              placeholder="Enter PIN (Default: 1234)"
+              placeholder="Enter PIN"
               value={pin}
               onChange={(e) => setPin(e.target.value)}
               className="w-full bg-surface-container-highest border border-outline-variant rounded p-3 text-sm font-code-snippet text-white focus:border-primary-fixed outline-none"
@@ -107,6 +123,26 @@ export const HostDashboard: React.FC = () => {
             className="bg-primary-container text-on-primary-container hover:bg-primary-fixed px-4 py-2 rounded font-label-caps text-xs font-bold uppercase"
           >
             START OFFICIAL RUN
+          </button>
+          <button
+            onClick={() => {
+              if (window.confirm("Force submit ALL teams? They will be moved to FINAL_SCORE.")) {
+                sendHostCommand(pin, 'FORCE_SUBMIT_ALL');
+              }
+            }}
+            className="bg-red-600 text-white hover:bg-red-500 px-4 py-2 rounded font-label-caps text-xs font-bold uppercase"
+          >
+            FORCE SUBMIT ALL
+          </button>
+          <button
+            onClick={() => {
+              if (window.confirm("WARNING: Are you sure you want to completely RESET ALL GAME DATA? This cannot be undone.")) {
+                sendHostCommand(pin, 'RESET_DATA');
+              }
+            }}
+            className="bg-red-950 text-red-400 border border-red-500/50 hover:bg-red-900 px-4 py-2 rounded font-label-caps text-xs font-bold uppercase ml-4"
+          >
+            DELETE ALL DATA
           </button>
         </div>
       </div>

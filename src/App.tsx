@@ -31,7 +31,10 @@ function MainAppContent() {
     selectPreset,
     runSim,
     startPhase,
+    forceSubmitTeam,
   } = useGameSocket();
+
+  const [warningCount, setWarningCount] = useState<number>(0);
 
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
   const [showFailureModal, setShowFailureModal] = useState<boolean>(false);
@@ -44,6 +47,41 @@ function MainAppContent() {
     setIsSimulating(true);
     runSim(runType);
   };
+
+  // Anti-Cheat: Tab Switching
+  useEffect(() => {
+    if (currentView !== 'player' || currentPhase === 'LOBBY' || currentPhase === 'FINAL_SCORE') return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setWarningCount(prev => {
+          const newCount = prev + 1;
+          if (newCount >= 3) {
+            alert("Maximum tab switches exceeded (3). Force submitting game!");
+            forceSubmitTeam();
+          } else {
+            alert(`WARNING: You switched tabs! (${newCount}/3 warnings)`);
+          }
+          return newCount;
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [currentView, currentPhase, forceSubmitTeam]);
+
+  // Anti-Cheat: 15 Minute Timer
+  useEffect(() => {
+    if (currentView !== 'player') return;
+
+    const timer = setTimeout(() => {
+      alert("15 minutes have passed! Time is up!");
+      forceSubmitTeam();
+    }, 15 * 60 * 1000);
+
+    return () => clearTimeout(timer);
+  }, [currentView, forceSubmitTeam]);
 
   useEffect(() => {
     if (currentPhase.endsWith('_RESULTS')) {

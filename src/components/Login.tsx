@@ -8,15 +8,14 @@ interface LoginProps {
 
 export const Login: React.FC<LoginProps> = ({ onLogin, onHostLogin }) => {
   const [teamName, setTeamName] = useState('');
-  const [teamId, setTeamId] = useState('');
   
   const { joinTeam } = useGameSocket();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!teamName.trim() || !teamId.trim()) return;
+    if (!teamName.trim()) return;
     
-    joinTeam(teamName, teamId);
+    joinTeam(teamName, teamName);
     onLogin();
   };
 
@@ -57,17 +56,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onHostLogin }) => {
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-label-caps text-on-surface-variant mb-1 uppercase">Team ID / Station</label>
-            <input
-              type="text"
-              required
-              value={teamId}
-              onChange={(e) => setTeamId(e.target.value)}
-              className="w-full bg-[#101218] border border-outline-variant rounded px-4 py-3 text-white placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-fixed focus:ring-1 focus:ring-primary-fixed transition-all font-telemetry-data"
-              placeholder="e.g. Station 1"
-            />
-          </div>
+
 
           <button
             type="submit"
