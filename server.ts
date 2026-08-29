@@ -20,7 +20,8 @@ import { calculateScore, compareLeaderboardEntries } from './src/game/scoringEng
 import { syncGameStateToFirebase } from './serverFirebase.js';
 
 
-const PORT = 3000;
+const portArg = process.argv.find(arg => arg.startsWith('--port='));
+const PORT = portArg ? parseInt(portArg.split('=')[1], 10) : (process.env.PORT || 3000);
 const HOST_PIN = process.env.HOST_PIN || 'P@ttu';
 
 // Phase State Machine Validation

@@ -9,7 +9,7 @@
     "build:web": "vite build",
     "start": "node dist/server.cjs --prod",
     "deploy": "wrangler deploy",
-    "preview": "node dist/server.cjs --prod",
+    "preview": "node dist/server.cjs --prod --port=3001",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
   },
