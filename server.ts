@@ -645,7 +645,7 @@ async function startServer() {
   });
 
   // Vite Middleware for Development / Static serving for Production
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && !process.argv.includes('--prod')) {
     const vite = await createViteServer({
       server: { middlewareMode: true, hmr: false },
       appType: 'spa',
